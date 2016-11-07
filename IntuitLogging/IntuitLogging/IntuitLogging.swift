@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct ILLogLevel : OptionSet {
+public struct ILLogLevel : OptionSetType {
     
     public let rawValue: Int
     
@@ -28,7 +28,7 @@ public struct ILLogLevel : OptionSet {
 extension ILLogLevel {
     
     //Mapping String -> Enum
-    static func from(_ string:String) -> ILLogLevel {
+    static func from(string:String) -> ILLogLevel {
         
         var result:ILLogLevel = ILLogLevel.ILLogLevelNone
         
@@ -77,15 +77,14 @@ extension ILLogLevel {
 }
 
 public enum LoggerType : UInt {
-    case cuLoggerTypeConsole    = 0x00000
-    case cuLoggerTypeRemote     = 0x00001
+    case CULoggerTypeConsole    = 0x00000
+    case CULoggerTypeRemote     = 0x00001
 }
 
-open class IntuitLogging: NSObject {
-
+public class IntuitLogging: NSObject {
     
-    open var activeLogLevels : ILLogLevel = ILLogLevel.ILLogLevelError
-    open var runtimeProps = [String:AnyObject]()
+    public var activeLogLevels : ILLogLevel = ILLogLevel.ILLogLevelError
+    public var runtimeProps = [String:AnyObject]()
     
     var providers = NSMutableOrderedSet()
     var config:ILConfiguration?
@@ -94,8 +93,8 @@ open class IntuitLogging: NSObject {
     override init() {
         self.activeLogLevels =  [ILLogLevel.ILLogLevelWarn, ILLogLevel.ILLogLevelError, ILLogLevel.ILLogLevelFatal]
         
-        let consoleProviderConfig = ILProviderConfig.init(withType: ProviderType.typeConsole, props: nil)
-        self.providers.add(ILConsoleLoggingProvider.init(WithConfigDict:consoleProviderConfig))
+        let consoleProviderConfig = ILProviderConfig.init(withType: ProviderType.TypeConsole, props: nil)
+        self.providers.addObject(ILConsoleLoggingProvider.init(WithConfigDict:consoleProviderConfig))
         
     }
     
@@ -104,16 +103,27 @@ open class IntuitLogging: NSObject {
         setConfig(WithConfigDict: config)
     }
     
-    open static var sharedInstance: IntuitLogging = IntuitLogging()
     
-    open func initialize(WithConfig config:ILConfiguration?) {
-        
-        if config != nil {
-            setConfig(WithConfigDict: config!)
+    public class func sharedInstance(config:ILConfiguration?) -> IntuitLogging {
+        struct Static {
+            static var onceToken: dispatch_once_t = 0
+            static var instance: IntuitLogging? = nil
         }
+        dispatch_once(&Static.onceToken) {
+            
+            if config != nil {
+                Static.instance = IntuitLogging.init(WithConfigDict: config!)
+                
+            }else{
+                //Default configuration (Console logger only, with logLevel set to 'warn' and above)
+                Static.instance = IntuitLogging.init()
+            }
+            
+        }
+        return Static.instance!
     }
     
-    open func setConfig(WithConfigDict config:ILConfiguration?) {
+    public func setConfig(WithConfigDict config:ILConfiguration?) {
         
         //Don't modify the defaults.!!!
         if config == nil {
@@ -137,12 +147,12 @@ open class IntuitLogging: NSObject {
             logLevelString.append(ILLogLevel.string(from: element))
         }
         
-        if logLevels.atLevel == LogLevelSpecification.atLeveleAndHigher {
+        if logLevels.atLevel == LogLevelSpecification.AtLeveleAndHigher {
             
             let logLeveStr:String = logLevelString.first!
             self.activeLogLevels = ILUtilities.makeInclusiveLogLevelOptionFromString(logLeveStr)
         }
-        else if logLevels.atLevel == LogLevelSpecification.atLevelsOnly {
+        else if logLevels.atLevel == LogLevelSpecification.AtLevelsOnly {
             
             self.activeLogLevels = ILUtilities.makeLogLevelOptionFromString(logLevelString)
         }
@@ -151,12 +161,12 @@ open class IntuitLogging: NSObject {
         //Initialize providers
         if let providerDict:Dictionary<String, ILProviderConfig> = settings.providers{
             
-            for (_,  element) in providerDict.enumerated() {
+            for (_,  element) in providerDict.enumerate() {
                 
                 let loggerObj:AnyObject? = IntuitLogging.makeProvider(element.0, provider: element.1)
                 
                 if loggerObj != nil{
-                    self.providers.add(loggerObj!)
+                    self.providers.addObject(loggerObj!)
                 }
                 else{
                     print("Failed to initialize provider \(element.0)")
@@ -172,15 +182,15 @@ open class IntuitLogging: NSObject {
     }
     
     
-    class func makeProvider(_ name:String, provider:ILProviderConfig)-> AnyObject? {
+    class func makeProvider(name:String, provider:ILProviderConfig)-> AnyObject? {
         
         var result:AnyObject?
         
         
-        if provider.type == ProviderType.typeConsole {
+        if provider.type == ProviderType.TypeConsole {
             result = ILConsoleLoggingProvider.init(WithName: name, config: provider)
         }
-        else if provider.type == ProviderType.typeRemote {
+        else if provider.type == ProviderType.TypeRemote {
             result = ILRemoteLoggingProvider.init(WithName: name, config: provider)
         }
         
@@ -188,7 +198,7 @@ open class IntuitLogging: NSObject {
     }
     
     
-    func log(_ message:String, logLevel:ILLogLevel, props:Dictionary<String, AnyObject>?, error:Any?) {
+    func log(message:String, logLevel:ILLogLevel, props:Dictionary<String, AnyObject>?, error:Any?) {
         
         let shouldLog: Bool = ((self.activeLogLevels.rawValue & logLevel.rawValue) == logLevel.rawValue) ? true : false
         
@@ -199,15 +209,15 @@ open class IntuitLogging: NSObject {
                 if let providerObj = provider as? LoggingProvider {
                     
                     var addProps = mergeRuntimPropsWith(props)
-                    addProps["loglevel"] = ILLogLevel.string(from: logLevel) as AnyObject?
+                    addProps["loglevel"] = ILLogLevel.string(from: logLevel)
                     
                     if (error != nil && error is exception){
                         
                         providerObj.logMessage(message, withException: error as! exception, logLevel: logLevel, props:addProps)
                     }
-                    else if (error != nil && error is Error){
+                    else if (error != nil && error is ErrorType){
                         
-                        providerObj.logMessage(message, withError: error as! Error, logLevel: logLevel, props: addProps)
+                        providerObj.logMessage(message, withError: error as! ErrorType, logLevel: logLevel, props: addProps)
                     }
                     else{
                         
@@ -221,7 +231,7 @@ open class IntuitLogging: NSObject {
     
     
     
-    func mergeRuntimPropsWith(_ addProb:[String:AnyObject]?) -> [String:AnyObject] {
+    func mergeRuntimPropsWith(addProb:[String:AnyObject]?) -> [String:AnyObject] {
         
         var resultProps = [String:AnyObject]()
         
@@ -241,91 +251,91 @@ open class IntuitLogging: NSObject {
     
     // Public methods
     
-    open func addProvider(_ logProvider:LoggingProvider) {
+    public func addProvider(logProvider:LoggingProvider) {
         
-        self.providers.add(logProvider)
+        self.providers.addObject(logProvider)
     }
     
     
-    open func removeProvider(_ logProvider:LoggingProvider) {
+    public func removeProvider(logProvider:LoggingProvider) {
         
-        self.providers.remove(logProvider)
+        self.providers.removeObject(logProvider)
     }
     
     
-    open func debug(_ message:String, props:Dictionary<String, AnyObject>?) {
+    public func debug(message:String, props:Dictionary<String, AnyObject>?) {
         
         log(message, logLevel: ILLogLevel.ILLogLevelDebug, props: props, error: nil)
     }
     
-    open func info(_ message:String, props:Dictionary<String, AnyObject>?) {
+    public func info(message:String, props:Dictionary<String, AnyObject>?) {
         
         log(message, logLevel: ILLogLevel.ILLogLevelInfo, props: props, error: nil)
     }
     
-    open func warn(_ message:String, props:Dictionary<String, AnyObject>?) {
+    public func warn(message:String, props:Dictionary<String, AnyObject>?) {
         
         log(message, logLevel: ILLogLevel.ILLogLevelWarn, props: props, error: nil)
     }
     
-    open func error(_ message:String, props:Dictionary<String, AnyObject>?) {
+    public func error(message:String, props:Dictionary<String, AnyObject>?) {
         
         log(message, logLevel: ILLogLevel.ILLogLevelError, props: props, error: nil)
     }
     
-    open func fatal(_ message:String, props:Dictionary<String, AnyObject>?) {
+    public func fatal(message:String, props:Dictionary<String, AnyObject>?) {
         
         log(message, logLevel: ILLogLevel.ILLogLevelFatal, props: props, error: nil)
     }
     
     //With Exceptions
-    open func debug(_ message:String, withException:exception, props:Dictionary<String, AnyObject>?) {
+    public func debug(message:String, withException:exception, props:Dictionary<String, AnyObject>?) {
         
         log(message, logLevel: ILLogLevel.ILLogLevelDebug, props: props, error: withException)
     }
     
-    open func info(_ message:String, withException:exception, props:Dictionary<String, AnyObject>?) {
+    public func info(message:String, withException:exception, props:Dictionary<String, AnyObject>?) {
         
         log(message, logLevel: ILLogLevel.ILLogLevelInfo, props: props, error: withException)
     }
     
-    open func warn(_ message:String, withException:exception, props:Dictionary<String, AnyObject>?) {
+    public func warn(message:String, withException:exception, props:Dictionary<String, AnyObject>?) {
         
         log(message, logLevel: ILLogLevel.ILLogLevelWarn, props: props, error: withException)
     }
     
-    open func error(_ message:String, withException:exception, props:Dictionary<String, AnyObject>?) {
+    public func error(message:String, withException:exception, props:Dictionary<String, AnyObject>?) {
         
         log(message, logLevel: ILLogLevel.ILLogLevelError, props: props, error: withException)
     }
     
-    open func fatal(_ message:String, withException:exception, props:Dictionary<String, AnyObject>?) {
+    public func fatal(message:String, withException:exception, props:Dictionary<String, AnyObject>?) {
         
         log(message, logLevel: ILLogLevel.ILLogLevelFatal, props: props, error: withException)
     }
     
     //With ErrorType
-    open func debug(_ message:String, withError:Error, props:Dictionary<String, AnyObject>?) {
+    public func debug(message:String, withError:ErrorType, props:Dictionary<String, AnyObject>?) {
         
         log(message, logLevel: ILLogLevel.ILLogLevelDebug, props: props, error: withError)
     }
     
-    open func info(_ message:String, withError:Error, props:Dictionary<String, AnyObject>?) {
+    public func info(message:String, withError:ErrorType, props:Dictionary<String, AnyObject>?) {
         
         log(message, logLevel: ILLogLevel.ILLogLevelInfo, props: props, error: withError)
     }
     
-    open func warn(_ message:String, withError:Error, props:Dictionary<String, AnyObject>?) {
+    public func warn(message:String, withError:ErrorType, props:Dictionary<String, AnyObject>?) {
         
         log(message, logLevel: ILLogLevel.ILLogLevelWarn, props: props, error: withError)
     }
     
-    open func error(_ message:String, withError:Error, props:Dictionary<String, AnyObject>?) {
+    public func error(message:String, withError:ErrorType, props:Dictionary<String, AnyObject>?) {
         
         log(message, logLevel: ILLogLevel.ILLogLevelError, props: props, error: withError)
     }
     
-    open func fatal(_ message:String, withError:Error, props:Dictionary<String, AnyObject>?) {
+    public func fatal(message:String, withError:ErrorType, props:Dictionary<String, AnyObject>?) {
         
         log(message, logLevel: ILLogLevel.ILLogLevelFatal, props: props, error: withError)
     }

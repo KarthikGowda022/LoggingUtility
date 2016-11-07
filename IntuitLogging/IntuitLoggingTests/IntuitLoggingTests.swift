@@ -28,7 +28,7 @@ class IntuitLoggingTests: XCTestCase {
     
     func testPerformanceExample() {
         // This is an example of a performance test case.
-        self.measure {
+        self.measureBlock {
             // Put the code you want to measure the time of here.
         }
     }
@@ -76,11 +76,11 @@ class IntuitLoggingTests: XCTestCase {
         logging.addProvider(UTLogger)
         
         XCTAssertEqual( logging.providers.count, providerCount+1, "AddProvider should add a provider");
-        XCTAssertNotEqual(logging.providers.index(of: UTLogger), NSNotFound, "AddProvider to add correct provider");
+        XCTAssertNotEqual(logging.providers.indexOfObject(UTLogger), NSNotFound, "AddProvider to add correct provider");
         
         logging.removeProvider(UTLogger)
         XCTAssertEqual( logging.providers.count, providerCount, "removeProvider should remove a provider");
-        XCTAssertEqual(logging.providers.index(of: UTLogger), NSNotFound, "removeProvider to remove correct provider");
+        XCTAssertEqual(logging.providers.indexOfObject(UTLogger), NSNotFound, "removeProvider to remove correct provider");
     }
     
     func testLoggingLevels() {
@@ -115,13 +115,13 @@ class IntuitLoggingTests: XCTestCase {
         
         //With Errors
         //To be ignored
-        loggerObj.debug("This is Debugggggggggggggg message!!!!", withError:ServiceError.noEndpoint, props:additionalProps())
-        loggerObj.info("This is infoooooooooooooooo message!!!!", withError:ServiceError.noEndpoint, props: additionalProps())
+        loggerObj.debug("This is Debugggggggggggggg message!!!!", withError:ServiceError.NoEndpoint, props:additionalProps())
+        loggerObj.info("This is infoooooooooooooooo message!!!!", withError:ServiceError.NoEndpoint, props: additionalProps())
         
         //To be logged
-        loggerObj.warn("This is Warninggggggggggggg message!!!!",  withError:ServiceError.noEndpoint, props: additionalProps())
-        loggerObj.error("This is Errorrrrrrrrrrrrrr message!!!!",  withError:ServiceError.noEndpoint, props: additionalProps())
-        loggerObj.fatal("This is Fatal errorrrrrrrr message!!!!",  withError:ServiceError.noEndpoint, props: additionalProps())
+        loggerObj.warn("This is Warninggggggggggggg message!!!!",  withError:ServiceError.NoEndpoint, props: additionalProps())
+        loggerObj.error("This is Errorrrrrrrrrrrrrr message!!!!",  withError:ServiceError.NoEndpoint, props: additionalProps())
+        loggerObj.fatal("This is Fatal errorrrrrrrr message!!!!",  withError:ServiceError.NoEndpoint, props: additionalProps())
     }
 
     
@@ -188,8 +188,8 @@ class IntuitLoggingTests: XCTestCase {
     
     func additionalProps() -> [String:AnyObject] {
         
-        return ["AppId":"123" as AnyObject,
-                "SessionId": "0924" as AnyObject]
+        return ["AppId":"123",
+                "SessionId": "0924"]
     }
     
     func configurationWithRemoteLogging() -> [String:AnyObject] {

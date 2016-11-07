@@ -27,7 +27,7 @@ class UnitTestLoggingProvider:NSObject, LoggingProvider {
         super.init()
     }
     
-    func logMessage(_ message: String, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
+    func logMessage(message: String, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
         
         if let propsDic = props?.count {
             print("\(self.name) - \(message) : \(propsDic)")
@@ -41,7 +41,7 @@ class UnitTestLoggingProvider:NSObject, LoggingProvider {
         
     }
     
-    func logMessage(_ message: String, withException exc:exception, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
+    func logMessage(message: String, withException exc:exception, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
         
         if let propsDic = props?.count {
             print("\(self.name) - \(message) : \(propsDic)")
@@ -54,7 +54,7 @@ class UnitTestLoggingProvider:NSObject, LoggingProvider {
 //        self.history.append(["message":message, "logLevel":logStr, "props":props!])
     }
     
-    func logMessage(_ message: String, withError error:Error, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
+    func logMessage(message: String, withError error:ErrorType, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
         
         if let propsDic = props?.count {
             print("\(self.name) - \(message) : \(propsDic)")

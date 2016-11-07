@@ -8,16 +8,16 @@
 
 import Foundation
 
-enum ServiceError: Error {
-    case noEndpoint
-    case noConnection
-    case failure
+enum ServiceError: ErrorType {
+    case NoEndpoint
+    case NoConnection
+    case Failure
 }
 
-enum ParameterError: Error {
-    case missingParameters
-    case missingApplicationID
-    case missingComponentName
+enum ParameterError: ErrorType {
+    case MissingParameters
+    case MissingApplicationID
+    case MissingComponentName
 }
 
 class ILRemoteLoggingProvider:NSObject, LoggingProvider {
@@ -41,7 +41,7 @@ class ILRemoteLoggingProvider:NSObject, LoggingProvider {
     }
     
     
-    func lookupValuefor(_ key:String, props:[String:AnyObject]) -> String {
+    func lookupValuefor(key:String, props:[String:AnyObject]) -> String {
         
         var result = ""
         
@@ -51,7 +51,7 @@ class ILRemoteLoggingProvider:NSObject, LoggingProvider {
         }
         else if let logLevelDict = props[key] as? [String:AnyObject] {
             
-            if  let source = logLevelDict["source"] as? String, let mapValue = logLevelDict["mapValues"] as? [String:String] {
+            if  let source = logLevelDict["source"] as? String, mapValue = logLevelDict["mapValues"] as? [String:String] {
                 
                 let sourceValue = props[source] as! String
                 
@@ -63,14 +63,14 @@ class ILRemoteLoggingProvider:NSObject, LoggingProvider {
                 else{
                     let lookUpKey = mapValue["#default"]
                     
-                    if let value = lookUpKey as String! , value.contains("${") {
+                    if let value = lookUpKey as String! where value.containsString("${") {
                         
-                        let startIdx = value.range(of: "${")!
-                        let endIdx = value.range(of: "}")!
+                        let startIdx = value.rangeOfString("${")!
+                        let endIdx = value.rangeOfString("}")!
                         //let range = value.startIndex.advancedBy(2)..<value.endIndex.advancedBy(-1)
                         
-                        let range = startIdx.upperBound..<endIdx.lowerBound
-                        let replaceKey = value.substring(with: range)
+                        let range = startIdx.endIndex..<endIdx.startIndex
+                        let replaceKey = value.substringWithRange(range)
                         replacedValue = lookupValuefor(replaceKey, props:props)
                         
                     }
@@ -87,7 +87,7 @@ class ILRemoteLoggingProvider:NSObject, LoggingProvider {
         return result
     }
     
-    func checkForSpecialSymbolsInAddProps(_ valueDict:[String:AnyObject], props:Dictionary<String,AnyObject>) -> [String:AnyObject] {
+    func checkForSpecialSymbolsInAddProps(valueDict:[String:AnyObject], props:Dictionary<String,AnyObject>) -> [String:AnyObject] {
         
         var resultsDict = [String:AnyObject]()
         
@@ -95,32 +95,29 @@ class ILRemoteLoggingProvider:NSObject, LoggingProvider {
             
             if let value = value as? String {
                 
-                var substituteValue:String = value
+                var substituteValue = value
                 
-                if value.contains("${") {
+                if value.containsString("${") {
                     
-                    let startIdx = value.range(of: "${")!
-                    let endIdx = value.range(of: "}")!
+                    let startIdx = value.rangeOfString("${")!
+                    let endIdx = value.rangeOfString("}")!
                     //let range = value.startIndex.advancedBy(2)..<value.endIndex.advancedBy(-1)
                     
-                    let range = startIdx.upperBound..<endIdx.lowerBound
-                    let replaceKey = value.substring(with: range)
+                    let range = startIdx.endIndex..<endIdx.startIndex
+                    let replaceKey = value.substringWithRange(range)
                     let replacementString = lookupValuefor(replaceKey, props:props)
                     
                     if replacementString.characters.count > 0 {
-
-                         let replaceRange =  startIdx.lowerBound..<endIdx.upperBound //value.index(startIdx.lowerBound, offsetBy: replaceKey.characters.count)
-
-                        substituteValue = substituteValue.replacingCharacters(in: replaceRange, with: replacementString)
-
+                        let replaceRange = range.startIndex.advancedBy(-2)..<range.endIndex.advancedBy(1)
+                        substituteValue.replaceRange(replaceRange, with: replacementString)
                     }
                     
                 }
-                resultsDict[key] = substituteValue as AnyObject?
+                resultsDict[key] = substituteValue
             }
             else if value is [String:AnyObject] {
                 
-                resultsDict[key] = checkForSpecialSymbolsInAddProps(value as! [String : AnyObject], props: props) as AnyObject?
+                resultsDict[key] = checkForSpecialSymbolsInAddProps(value as! [String : AnyObject], props: props)
             }
             
             
@@ -129,13 +126,13 @@ class ILRemoteLoggingProvider:NSObject, LoggingProvider {
         return resultsDict
     }
     
-    func logRemoteMessage(_ message: String, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?, error:Any?) throws {
+    func logRemoteMessage(message: String, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?, error:Any?) throws {
         
         var requestUrl: String = ""
         
         if self.config.endpoint == nil {
             print("No End point URL!!!")
-            throw ServiceError.noEndpoint
+            throw ServiceError.NoEndpoint
         }
         
         let endPointDict:[String:AnyObject]? = checkForSpecialSymbolsInAddProps(self.config.endpoint!, props: props!)
@@ -173,7 +170,7 @@ class ILRemoteLoggingProvider:NSObject, LoggingProvider {
         else{
             
             print("No End point URL!!!")
-            throw ServiceError.noEndpoint
+            throw ServiceError.NoEndpoint
             
         }
         
@@ -181,7 +178,7 @@ class ILRemoteLoggingProvider:NSObject, LoggingProvider {
         
         if self.config.headers != nil {
             
-            let parsedHeader = checkForSpecialSymbolsInAddProps(self.config.headers! as [String : AnyObject], props: props!)
+            let parsedHeader = checkForSpecialSymbolsInAddProps(self.config.headers!, props: props!)
             
             appId = parsedHeader["Application-ID"] as? String
             
@@ -190,29 +187,29 @@ class ILRemoteLoggingProvider:NSObject, LoggingProvider {
         //let appId:String? = props!["Application-ID"] as? String
         
         if appId == nil {
-            throw ParameterError.missingApplicationID
+            throw ParameterError.MissingApplicationID
         }
         
         
         let component:String? = props!["component"] as? String
         
         if component == nil {
-            throw ParameterError.missingComponentName
+            throw ParameterError.MissingComponentName
         }
         
         
-        var postData = NSData(data: "appId=\(appId!)".data(using: String.Encoding.utf8)!) as Data
-        postData.append("&component=\(component!)".data(using: String.Encoding.utf8)!)
-        postData.append("&message=\(message)".data(using: String.Encoding.utf8)!)
-        postData.append("&authid=11".data(using: String.Encoding.utf8)!)
-        postData.append("&userid=uuuuu".data(using: String.Encoding.utf8)!)
+        let postData = NSMutableData(data: "appId=\(appId!)".dataUsingEncoding(NSUTF8StringEncoding)!)
+        postData.appendData("&component=\(component!)".dataUsingEncoding(NSUTF8StringEncoding)!)
+        postData.appendData("&message=\(message)".dataUsingEncoding(NSUTF8StringEncoding)!)
+        postData.appendData("&authid=11".dataUsingEncoding(NSUTF8StringEncoding)!)
+        postData.appendData("&userid=uuuuu".dataUsingEncoding(NSUTF8StringEncoding)!)
         
         
-        var request = URLRequest(url: URL(string: requestUrl)!,
-                                          cachePolicy: .useProtocolCachePolicy,
-                                          timeoutInterval: 10)
-        request.httpMethod = "POST"
-        request.httpBody = postData
+        let request = NSMutableURLRequest(URL: NSURL(string: requestUrl)!,
+                                          cachePolicy: .UseProtocolCachePolicy,
+                                          timeoutInterval: 50.0)
+        request.HTTPMethod = "POST"
+        request.HTTPBody = postData
         
         
         //It is an optional Header
@@ -220,13 +217,13 @@ class ILRemoteLoggingProvider:NSObject, LoggingProvider {
         //            request.allHTTPHeaderFields = headers
         //        }
         
-        let session = URLSession.shared
-        let dataTask = session.dataTask(with: request, completionHandler: { (data, response, error) -> Void in
+        let session = NSURLSession.sharedSession()
+        let dataTask = session.dataTaskWithRequest(request, completionHandler: { (data, response, error) -> Void in
             
             if (error != nil) {
-                 print(error!.localizedDescription)
+                print(NSHTTPURLResponse.localizedStringForStatusCode((error?.code)!))
             } else {
-                let httpResponse = response as? HTTPURLResponse
+                let httpResponse = response as? NSHTTPURLResponse
                 print(httpResponse)
             }
         })
@@ -236,7 +233,7 @@ class ILRemoteLoggingProvider:NSObject, LoggingProvider {
         
     }
     
-    func mergeRuntimPropsWith(_ addProb:[String:AnyObject]?) -> [String:AnyObject] {
+    func mergeRuntimPropsWith(addProb:[String:AnyObject]?) -> [String:AnyObject] {
         
         var resultProps = [String:AnyObject]()
         
@@ -257,20 +254,20 @@ class ILRemoteLoggingProvider:NSObject, LoggingProvider {
     
     
     
-    func logMessage(_ message: String, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
+    func logMessage(message: String, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
         
         do{
             let addProps = mergeRuntimPropsWith(props)
             try logRemoteMessage(message, logLevel: logLevel, props: addProps, error:nil)
             
         }
-        catch ParameterError.missingComponentName{
+        catch ParameterError.MissingComponentName{
             print("Excetion raised - Component name missing!!!")
         }
-        catch ParameterError.missingApplicationID{
+        catch ParameterError.MissingApplicationID{
             print("Excetion raised - Application-ID is missing!!!")
         }
-        catch ServiceError.noEndpoint{
+        catch ServiceError.NoEndpoint{
             print("Excetion raised - Missing Endpoint")
         }
         catch{
@@ -278,20 +275,20 @@ class ILRemoteLoggingProvider:NSObject, LoggingProvider {
         }
     }
     
-    func logMessage(_ message: String, withException exc:exception, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
+    func logMessage(message: String, withException exc:exception, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
         
         
         do{
             let addProps = mergeRuntimPropsWith(props)
             try  logRemoteMessage(message, logLevel: logLevel, props: addProps, error:exc)
         }
-        catch ParameterError.missingComponentName{
+        catch ParameterError.MissingComponentName{
             print("Excetion raised - Missing ComponentName")
         }
-        catch ParameterError.missingApplicationID{
+        catch ParameterError.MissingApplicationID{
             print("Excetion raised - Missing ApplicationID")
         }
-        catch ServiceError.noEndpoint{
+        catch ServiceError.NoEndpoint{
             print("Excetion raised - Missing Endpoint")
         }
         catch{
@@ -300,20 +297,20 @@ class ILRemoteLoggingProvider:NSObject, LoggingProvider {
         
     }
     
-    func logMessage(_ message: String, withError error:Error, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
+    func logMessage(message: String, withError error:ErrorType, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
         
         
         do{
             let addProps = mergeRuntimPropsWith(props)
             try logRemoteMessage(message, logLevel: logLevel, props: addProps, error:error)
         }
-        catch ParameterError.missingComponentName{
+        catch ParameterError.MissingComponentName{
             print("Excetion raised - Missing ComponentName")
         }
-        catch ParameterError.missingApplicationID{
+        catch ParameterError.MissingApplicationID{
             print("Excetion raised - Missing ApplicationID")
         }
-        catch ServiceError.noEndpoint{
+        catch ServiceError.NoEndpoint{
             print("Excetion raised - Missing Endpoint")
         }
         catch{

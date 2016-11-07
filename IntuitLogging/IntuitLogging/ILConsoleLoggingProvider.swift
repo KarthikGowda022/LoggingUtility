@@ -26,43 +26,43 @@ class ILConsoleLoggingProvider:NSObject, LoggingProvider {
         super.init()
     }
     
-    func logMessage(_ message: String, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
+    func logMessage(message: String, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
         
         let mergredProps:[String:AnyObject]? = mergeRuntimPropsWith(props)
         if let propsDic = mergredProps?.count {
-            print("\(Date()):LoggingUtility - \(message) : \(propsDic)")
+            print("\(NSDate()):LoggingUtility - \(message) : \(propsDic)")
         }
         else{
-            print("\(Date()):LoggingUtility -\(message)")
+            print("\(NSDate()):LoggingUtility -\(message)")
         }
     }
     
-    func logMessage(_ message: String, withException exc:exception, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
-        
-        let mergredProps:[String:AnyObject]? = mergeRuntimPropsWith(props)
-        if let propsDic = mergredProps?.count {
-            
-            print("\(Date()):LoggingUtility -\(message) : \(propsDic)")
-        }
-        else{
-            print("\(Date()):LoggingUtility -\(message)")
-        }
-    }
-    
-    func logMessage(_ message: String, withError error:Error, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
+    func logMessage(message: String, withException exc:exception, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
         
         let mergredProps:[String:AnyObject]? = mergeRuntimPropsWith(props)
         if let propsDic = mergredProps?.count {
             
-            print("\(Date()):LoggingUtility -\(message) : \(propsDic)")
+            print("\(NSDate()):LoggingUtility -\(message) : \(propsDic)")
         }
         else{
-            print("\(Date()):LoggingUtility -\(message)")
+            print("\(NSDate()):LoggingUtility -\(message)")
+        }
+    }
+    
+    func logMessage(message: String, withError error:ErrorType, logLevel:ILLogLevel, props:Dictionary<String,AnyObject>?){
+        
+        let mergredProps:[String:AnyObject]? = mergeRuntimPropsWith(props)
+        if let propsDic = mergredProps?.count {
+            
+            print("\(NSDate()):LoggingUtility -\(message) : \(propsDic)")
+        }
+        else{
+            print("\(NSDate()):LoggingUtility -\(message)")
         }
         
     }
     
-    func mergeRuntimPropsWith(_ addProb:[String:AnyObject]?) -> [String:AnyObject] {
+    func mergeRuntimPropsWith(addProb:[String:AnyObject]?) -> [String:AnyObject] {
         
         var resultProps = [String:AnyObject]()
         

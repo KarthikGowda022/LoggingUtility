@@ -17,7 +17,6 @@
 		C944C0C31D9C771A009E4246 /* ILConsoleLoggingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C944C0C21D9C771A009E4246 /* ILConsoleLoggingProvider.swift */; };
 		C944C0C61D9C773A009E4246 /* ILRemoteLoggingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C944C0C51D9C773A009E4246 /* ILRemoteLoggingProvider.swift */; };
 		C96017071DAC357200C66BB9 /* UnitTestLoggingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C944C0C81D9C8385009E4246 /* UnitTestLoggingProvider.swift */; };
-		C97B67E41DCAA5A90000DFBC /* ILConfiguration.swift in Headers */ = {isa = PBXBuildFile; fileRef = C944C0BC1D9C6FA8009E4246 /* ILConfiguration.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -116,7 +115,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				C944C0A01D9B0CBC009E4246 /* IntuitLogging.h in Headers */,
-				C97B67E41DCAA5A90000DFBC /* ILConfiguration.swift in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -172,11 +170,9 @@
 				TargetAttributes = {
 					C944C09B1D9B0CBC009E4246 = {
 						CreatedOnToolsVersion = 7.3.1;
-						LastSwiftMigration = 0800;
 					};
 					C944C0A51D9B0CBC009E4246 = {
 						CreatedOnToolsVersion = 7.3.1;
-						LastSwiftMigration = 0800;
 					};
 				};
 			};
@@ -373,7 +369,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -392,7 +387,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Intuit.IntuitLogging;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
@@ -403,7 +397,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Intuit.IntuitLoggingTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -414,7 +407,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Intuit.IntuitLoggingTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};

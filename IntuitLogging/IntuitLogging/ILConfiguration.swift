@@ -10,24 +10,24 @@ import Foundation
 
 public enum LogLevelSpecification {
     
-    case atLeveleAndHigher
-    case atLevelsOnly
+    case AtLeveleAndHigher
+    case AtLevelsOnly
 }
 
 public enum ProviderType {
     
-    case typeConsole
-    case typeRemote
-    case typeCustom
+    case TypeConsole
+    case TypeRemote
+    case TypeCustom
 }
 
-open class ILConfiguration : NSObject {
+public class ILConfiguration : NSObject {
     
-    open var level:ILLevel = ILLevel.init(withSpec: .atLeveleAndHigher, levels: [ILLogLevel.ILLogLevelDebug])
+    public var level:ILLevel = ILLevel.init(withSpec: .AtLeveleAndHigher, levels: [ILLogLevel.ILLogLevelDebug])
     
-    open var providers:[String:ILProviderConfig]?
+    public var providers:[String:ILProviderConfig]?
     
-    open var additionalProps:[String:AnyObject]?
+    public var additionalProps:[String:AnyObject]?
     
     public init(level:ILLevel, providers:[String:ILProviderConfig]?, props:[String:AnyObject]?){
         
@@ -36,14 +36,14 @@ open class ILConfiguration : NSObject {
         self.additionalProps = props
     }
     
-    open class func configurationFromResourcePath(_ fileName:String, ofType type:String) -> ILConfiguration? {
+    public class func configurationFromResourcePath(fileName:String, ofType type:String) -> ILConfiguration? {
         
         var result:ILConfiguration?
         
-        let path:String? = Bundle.main.path(forResource: fileName, ofType:type)
+        let path:String? = NSBundle.mainBundle().pathForResource(fileName, ofType:type)
         
         if path != nil{
-            let setttingJson = try? String(contentsOfFile:path!, encoding: String.Encoding.utf8)
+            let setttingJson = try? String(contentsOfFile:path!, encoding: NSUTF8StringEncoding)
             
             if (setttingJson != nil ){
                 result = configurationFromJSON(setttingJson!)
@@ -62,12 +62,12 @@ open class ILConfiguration : NSObject {
     
     
     
-    open class func configurationFromJSON(_ data:String) -> ILConfiguration {
+    public class func configurationFromJSON(data:String) -> ILConfiguration {
         
         var results:ILConfiguration?
         
         do {
-            let cofigDict:[String:AnyObject] = try JSONSerialization.jsonObject(with: data.data(using: String.Encoding.utf8)!, options:.allowFragments) as! [String:AnyObject]
+            let cofigDict:[String:AnyObject] = try NSJSONSerialization.JSONObjectWithData(data.dataUsingEncoding(NSUTF8StringEncoding)!, options:.AllowFragments) as! [String:AnyObject]
             print("configurationFromJSON = \(cofigDict)")
             
             results = loggingConfigurationFromDictionary(cofigDict)
@@ -81,31 +81,31 @@ open class ILConfiguration : NSObject {
     }
     
     
-    open class func loggingConfigurationFromDictionary(_ configDict:[String:AnyObject]) -> ILConfiguration {
+    public class func loggingConfigurationFromDictionary(configDict:[String:AnyObject]) -> ILConfiguration {
         
         var loggingConfig:ILConfiguration
         
         var logLevels = [ILLogLevel]()
-        var logLevleSpec:LogLevelSpecification = .atLevelsOnly
+        var logLevleSpec:LogLevelSpecification = .AtLevelsOnly
         
         if let levels = configDict["levels"] as? [String:AnyObject] {
             
             if let levelsList = levels["AtLevelAndHigher"] as? [String] {
                 
                 logLevels.append(ILLogLevel.from(levelsList.first!))
-                logLevleSpec =  .atLeveleAndHigher
+                logLevleSpec =  .AtLeveleAndHigher
             }
             else if let levelsList = levels["AtLevelAndHigher"] as? String {
                 
                 logLevels.append(ILLogLevel.from(levelsList))
-                logLevleSpec =  .atLeveleAndHigher
+                logLevleSpec =  .AtLeveleAndHigher
             }
             else if let levelsList = levels["AtLevelsOnly"] as? [String] {
                 
                 for each in levelsList {
                     logLevels.append(ILLogLevel.from(each))
                 }
-                logLevleSpec =  .atLevelsOnly
+                logLevleSpec =  .AtLevelsOnly
             }
             else{
                 print("Parsing Erorr.!!!")
@@ -126,17 +126,17 @@ open class ILConfiguration : NSObject {
                 var provider:ILProviderConfig
                 if type == "local" || type == "Local" {
                     
-                    provider = ILProviderConfig.init(withType:.typeConsole, props: value as? [String : AnyObject])
+                    provider = ILProviderConfig.init(withType:.TypeConsole, props: value as? [String : AnyObject])
                 }
                 else if type == "remote" || type == "Remote" {
                     
                     let prop = value["addProps"] as? [String : AnyObject]
                     let endPoint = value["endpoint"] as? [String : AnyObject]
                     let headers = value["headers"] as? [String : String]
-                    provider = ILProviderConfig.init(withType: .typeRemote, endpoint: endPoint, headers: headers, props: prop)
+                    provider = ILProviderConfig.init(withType: .TypeRemote, endpoint: endPoint, headers: headers, props: prop)
                 }
                 else{
-                    provider = ILProviderConfig.init(withType:.typeCustom, props: nil)
+                    provider = ILProviderConfig.init(withType:.TypeCustom, props: nil)
                 }
                 providers[key] = provider
             }
@@ -155,11 +155,11 @@ open class ILConfiguration : NSObject {
 }
 
 
-open class ILLevel{
+public class ILLevel{
     
-    open var atLevel:LogLevelSpecification
+    public var atLevel:LogLevelSpecification
     
-    open var levels:[ILLogLevel]
+    public var levels:[ILLogLevel]
     
     
     public init(withSpec:LogLevelSpecification, levels:[ILLogLevel]){
@@ -171,13 +171,13 @@ open class ILLevel{
 }
 
 
-open class ILProviderConfig {
+public class ILProviderConfig {
     
-    open var type:ProviderType
+    public var type:ProviderType
     
-    open var addProps:[String:AnyObject]?
-    open var endpoint:[String:AnyObject]?
-    open var headers:[String:String]?
+    public var addProps:[String:AnyObject]?
+    public var endpoint:[String:AnyObject]?
+    public var headers:[String:String]?
     
     public init(withType:ProviderType, props:[String:AnyObject]?){
         

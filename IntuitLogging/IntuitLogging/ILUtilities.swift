@@ -10,10 +10,10 @@ import Foundation
 
 class ILUtilities {
 
-    class func makeLogLevelOptionFromString(_ levelArray:[String]) -> ILLogLevel{
+    class func makeLogLevelOptionFromString(levelArray:[String]) -> ILLogLevel{
         
         var value : Int = 0
-        for (_, item) in levelArray.enumerated() {
+        for (_, item) in levelArray.enumerate() {
             
             value |= ILLogLevel.from(item).rawValue
         }
@@ -23,13 +23,13 @@ class ILUtilities {
     }
     
  
-    class func makeInclusiveLogLevelOptionFromString(_ levelStr:String) -> ILLogLevel {
+    class func makeInclusiveLogLevelOptionFromString(levelStr:String) -> ILLogLevel {
         
         let allOptions = ["fatal", "error", "warn", "info", "debug"]
         
         var subArray = [String]()
         
-        for (_, item) in allOptions.enumerated() {
+        for (_, item) in allOptions.enumerate() {
             subArray.append(item)
             if item == levelStr {
                 break
