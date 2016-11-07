@@ -188,7 +188,7 @@ class IntuitLoggingTests: XCTestCase {
     
     func additionalProps() -> [String:AnyObject] {
         
-        return ["AppId":"123",
+        return ["AppId":"CicleCITest",
                 "SessionId": "0924"]
     }
     

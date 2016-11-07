@@ -229,7 +229,7 @@ class ILRemoteLoggingProvider:NSObject, LoggingProvider {
         })
         
         dataTask.resume()
-        //sleep(30)
+        sleep(30)
         
     }
     
